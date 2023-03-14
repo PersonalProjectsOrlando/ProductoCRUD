@@ -1,123 +1,94 @@
 package edu.oralbama.crudProductos.business;
 
 import edu.oralbama.crudProductos.models.Producto;
+import edu.oralbama.crudProductos.repository.ProductRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.ArrayList;
+import javax.transaction.Transactional;
+import java.util.List;
+import java.util.Optional;
+
 @Service
-public class ProductManager {
-    private ArrayList<Producto> ListaProductos;
-    Producto producto = new Producto();
-    public ProductManager(){
-      this.ListaProductos=new ArrayList<>();
-      this.ListaProductos.add(new Producto("Arroz","Almidon","2000",50));
-      this.ListaProductos.add(new Producto("Cerveza","Bebida","2200",32));
+public class ProductManager implements ProductManagerInterface{
+    @Autowired
+    private ProductRepository repositorio;
+
+    @Override
+    public List<Producto> getListaProductos() {
+        return repositorio.findAll();
     }
 
-    public ArrayList<Producto> getListaProductos() {
-
-        return ListaProductos;
-    }
-
-    public void setListaProductos(ArrayList<Producto> listaProductos) {
-
-        ListaProductos = listaProductos;
-    }
-    public Producto readProduct(Producto producto){
-        for(int i=0;i<ListaProductos.size();i++){
-            producto = ListaProductos.get(i);
+    @Override
+    public Producto getProductoName(String name) throws Exception {
+        Optional<Producto> productBD = repositorio.findById(name);
+        if(productBD.isPresent()){
+            return productBD.get();
         }
-        return producto;
-    }
-    public Producto getProductoName(String name) throws Exception{
-        //readProduct(producto);
-        for(int i=0;i<ListaProductos.size();i++){
-            producto = ListaProductos.get(i);
-            if(producto.getName().equals(name)){
-                return producto;
-            }
-        }
-        throw new Exception("El producto no existe :(");
-    }
-    public Producto getProductDescription(String description) throws Exception {
-        //readProduct(producto);
-        for(int i=0;i<ListaProductos.size();i++){
-            producto = ListaProductos.get(i);
-            if(producto.getDescription().equals(description)){
-                return producto;
-            }
-        }
-        throw new Exception("El producto no existe :(");
 
+        throw new Exception("!!Producto No existe!!");
     }
-    public Producto getProductPrice(String price) throws Exception {
-        //readProduct(producto);
-        for(int i=0;i<ListaProductos.size();i++){
-            producto = ListaProductos.get(i);
-            if(producto.getPrice().equals(price)){
-                return producto;
-            }
-        }
-        throw new Exception("El producto no existe :(");
 
+    @Override
+    public Producto getProductDescription(String description) {
+        return null;
     }
-    public String setProducto(Producto producto) throws Exception{
+
+    @Override
+    public Producto getProductPrice(String price) {
+        return null;
+    }
+
+    @Override
+    public String setProducto(Producto producto) throws Exception {
         try{
-            getProductoName(producto.getName()); // verifica si existe el producto y si si, muestra producto existente
-
+            getProductoName(producto.getName());    //Verifica que el product exista
         }catch (Exception e){
-            this.ListaProductos.add(producto);
-            return "Creacion exitosa de producto";
+            repositorio.save(producto);
+            return "Producto creado";
         }
         throw  new Exception("Producto existente");
+
+    }
+    @Transactional
+    @Override
+    public Producto updateProductAll(Producto productUpdate, String name) throws Exception {
+        try{
+            getProductoName(productUpdate.getName());
+            repositorio.update(name, productUpdate.getDescription(),productUpdate.getPrice(),productUpdate.getStock());
+            return  getProductoName(name);
+        }catch (Exception e){
+            throw new Exception("Objeto No existente");
+        }
+
     }
 
-    public Producto updateProduct(Producto productUpdate, String name) throws Exception {
+    @Override
+    public Producto updateProduct(Producto productUpdate, String name) throws Exception{
+        Producto productoBd = getProductoName(name);
         try {
-            //Producto productoBd=getProductoName(productUpdate.getName()); // verifica si existe el producto y si si, muestra producto existente
-            Producto productoBd = getProductoName(name);
-            if(productUpdate.getName() != null && !productUpdate.getName().equals("")){
+            /*if(productUpdate.getName() != null && !productUpdate.getName().equals("")){
+                productoBd.setName(productoBd.getName());
+            }*/
+            if (productUpdate.getDescription() != null && !productUpdate.getDescription().equals("")) {
                 productoBd.setDescription(productUpdate.getDescription());
             }
-            if(productUpdate.getDescription() != null && !productUpdate.getDescription().equals("")){
-               productoBd.setDescription(productUpdate.getDescription());
-            }
-            if(productUpdate.getPrice() != null && !productUpdate.getPrice().equals("")){
+            if (productUpdate.getPrice() != null && !productUpdate.getPrice().equals("")) {
                 productoBd.setPrice(productUpdate.getPrice());
             }
-            if(String.valueOf(productUpdate.getStock()) != null && !String.valueOf(productUpdate.getStock()).equals("")){
+            if (String.valueOf(productUpdate.getStock()) != null && !String.valueOf(productUpdate.getStock()).equals("")) {
                 productoBd.setStock(productUpdate.getStock());
             }
-            return productoBd;
-        }catch(Exception e){
+            return repositorio.save(productoBd);
+
+        }catch (Exception e){
             throw new Exception("Producto no existe , fallo actualizacion de datos");
         }
-
-    }
-    public Producto updateProductAll(Producto productoUpdate, String name) throws Exception{
-        try{
-            Producto productoBd = getProductoName(name);
-            productoBd.setName(productoUpdate.getName());
-            productoBd.setDescription(productoUpdate.getDescription());
-            productoBd.setPrice(productoUpdate.getPrice());
-            productoBd.setStock(productoUpdate.getStock());
-            return productoBd;
-        }catch(Exception e){
-            throw new Exception("Producto No existe, fallo actualizacion de datos");
-        }
-
-    }
-    public String deleteProduct(String name) throws Exception {
-        try{
-            Producto productoDb = getProductoName(name);
-            this.ListaProductos.remove(productoDb);
-            return "Producto eliminado";
-        }
-
-        catch(Exception e){
-            throw new Exception("Producto No existe, No borrado");
-        }
     }
 
+    @Override
+    public String deleteProduct(String name) {
+        repositorio.deleteById(name);
+        return "Producto eliminado";
+    }
 }

@@ -1,6 +1,8 @@
 package edu.oralbama.crudProductos.controller;
 
 import edu.oralbama.crudProductos.business.ProductManager;
+import edu.oralbama.crudProductos.business.ProductManagerInterface;
+import edu.oralbama.crudProductos.business.ProductManagerList;
 import edu.oralbama.crudProductos.models.ObjectRequest;
 import edu.oralbama.crudProductos.models.Producto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,14 +11,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 public class ProductoController {
+    /*@Autowired
+    private ProductManagerList productManager;  // Se usa cpn la estrategia de gestor con ArrayLList*/
     @Autowired
-    ProductManager productManager;
+    private ProductManagerInterface productManager;
     Producto producto = new Producto();
     @GetMapping("/products")
-    public ResponseEntity<ArrayList<Producto>> getProducts(){
+    public ResponseEntity<List<Producto>> getProducts(){
         return new ResponseEntity<>(productManager.getListaProductos(), HttpStatus.OK);
     }
     @GetMapping("/productName")
@@ -92,7 +97,7 @@ public class ProductoController {
     public ResponseEntity<ObjectRequest> putProduct(@RequestBody Producto productUpdate, @PathVariable String name){
         try{
             Producto productBd = productManager.updateProductAll(productUpdate, name);
-            return new ResponseEntity<>(new ObjectRequest("Actualizacion OK",productBd),HttpStatus.OK);
+            return new ResponseEntity<>(new ObjectRequest("Actualizacion OK",productUpdate),HttpStatus.OK);
         }catch (Exception e){
             return new ResponseEntity<>(new ObjectRequest(e.getMessage(),null),HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -101,12 +106,13 @@ public class ProductoController {
     public ResponseEntity<ObjectRequest> patchProduct(@RequestBody Producto productUpdate, @PathVariable String name){
         try{
             Producto productBd = productManager.updateProduct(productUpdate, name);
-            return new ResponseEntity<>(new ObjectRequest("Actualizacion OK",productBd),HttpStatus.OK);
+            return new ResponseEntity<>(new ObjectRequest("Actualizacion OK",productUpdate),HttpStatus.OK);
         }catch (Exception e){
+            e.printStackTrace();
             return new ResponseEntity<>(new ObjectRequest(e.getMessage(),null),HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    @DeleteMapping("/product/{name}")
+    @DeleteMapping("/producto/{name}")
     public ResponseEntity<ObjectRequest> deleteProduct(@PathVariable String name){
         try{
             String mensaje = productManager.deleteProduct(name);

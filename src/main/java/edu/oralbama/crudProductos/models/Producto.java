@@ -1,9 +1,20 @@
 package edu.oralbama.crudProductos.models;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="Producto")
 public class Producto {
+    @Id
     private String name;
+    @Column
     private String description;
+    @Column
     private String price;
+    @Column
     private int stock;
 
     public Producto(String name, String description, String price, int stock) {

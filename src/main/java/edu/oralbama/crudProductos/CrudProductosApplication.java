@@ -1,6 +1,5 @@
 package edu.oralbama.crudProductos;
 
-import edu.oralbama.crudProductos.business.ProductManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
